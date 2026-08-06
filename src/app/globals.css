@@ -218,11 +218,32 @@ textarea {
     box-shadow 0.15s ease;
 }
 
+input[type="file"] {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.85rem;
+}
+
 input:focus,
 textarea:focus {
   outline: none;
   border-color: color-mix(in oklab, var(--accent) 55%, var(--line));
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+.file-hint {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.item-image {
+  display: block;
+  width: min(100%, 220px);
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #eef3f6;
 }
 
 .btn {

@@ -31,6 +31,8 @@ export default function CrudPlayground() {
   const [items, setItems] = useState<ItemRecord[]>([]);
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
@@ -41,9 +43,11 @@ export default function CrudPlayground() {
     setMessage(null);
     try {
       const pb = getPocketBase();
-      const result = await pb.collection(COLLECTION).getList<ItemRecord>(1, 50, {
-        sort: "-created",
-      });
+      const result = await pb
+        .collection(COLLECTION)
+        .getList<ItemRecord>(1, 50, {
+          sort: "-created",
+        });
       setItems(result.items);
       setStatus("ok");
       setMessage(`Loaded ${result.totalItems} record(s) from "${COLLECTION}".`);
@@ -66,14 +70,22 @@ export default function CrudPlayground() {
     setMessage(null);
     try {
       const pb = getPocketBase();
-      await pb.collection(COLLECTION).create<ItemRecord>({
-        title: title.trim(),
-        notes: notes.trim(),
-        done: false,
-      });
+      // FormData is required so PocketBase can store the uploaded file.
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("notes", notes.trim());
+      formData.append("done", "false");
+      if (imageFile) {
+        formData.append("displayimage", imageFile);
+      }
+
+      const uploadedImage = Boolean(imageFile);
+      await pb.collection(COLLECTION).create<ItemRecord>(formData);
       setTitle("");
       setNotes("");
-      setMessage("Created record.");
+      setImageFile(null);
+      setFileInputKey((key) => key + 1);
+      setMessage(uploadedImage ? "Created record with image." : "Created record.");
       await loadItems();
     } catch (err) {
       setStatus("error");
@@ -81,6 +93,11 @@ export default function CrudPlayground() {
     } finally {
       setBusyId(null);
     }
+  }
+
+  function fileUrl(item: ItemRecord): string | null {
+    if (!item.displayimage) return null;
+    return getPocketBase().files.getURL(item, item.displayimage);
   }
 
   function startEdit(item: ItemRecord) {
@@ -235,6 +252,20 @@ export default function CrudPlayground() {
               maxLength={2000}
             />
           </label>
+          <label>
+            Image
+            <input
+              key={fileInputKey}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+            />
+            {imageFile ? (
+              <span className="file-hint">{imageFile.name}</span>
+            ) : (
+              <span className="file-hint">Optional — stored in PocketBase displayimage field</span>
+            )}
+          </label>
           <button
             type="submit"
             className="btn btn-primary"
@@ -261,6 +292,7 @@ export default function CrudPlayground() {
             {items.map((item) => {
               const isEditing = editingId === item.id;
               const isBusy = busyId === item.id;
+              const imageSrc = fileUrl(item);
 
               return (
                 <li key={item.id} className={item.done ? "item done" : "item"}>
@@ -311,6 +343,13 @@ export default function CrudPlayground() {
                             {item.notes ? <em>{item.notes}</em> : null}
                           </span>
                         </label>
+                        {imageSrc ? (
+                          <img
+                            className="item-image"
+                            src={imageSrc}
+                            alt={`Image for ${item.title}`}
+                          />
+                        ) : null}
                         <code className="id">{item.id}</code>
                       </div>
                       <div className="actions">
@@ -348,8 +387,9 @@ export default function CrudPlayground() {
             <code>{COLLECTION}</code>.
           </li>
           <li>
-            Add fields: <code>title</code> (text, required),{" "}
-            <code>notes</code> (text), <code>done</code> (bool).
+            Add fields: <code>title</code> (text, required), <code>notes</code>{" "}
+            (text), <code>done</code> (bool), <code>displayimage</code> (file,
+            single, image mime types).
           </li>
           <li>
             For local testing, set API rules for list/view/create/update/delete

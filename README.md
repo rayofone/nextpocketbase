@@ -23,11 +23,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 In the admin UI (`http://<host>:<port>/_/`), create a collection named `items` (or change `NEXT_PUBLIC_POCKETBASE_COLLECTION`) with:
 
-| Field   | Type | Notes        |
-| ------- | ---- | ------------ |
-| `title` | text | required     |
-| `notes` | text | optional     |
-| `done`  | bool | default false |
+| Field   | Type | Notes                          |
+| ------- | ---- | ------------------------------ |
+| `title` | text | required                       |
+| `notes` | text | optional                       |
+| `done`  | bool | default false                  |
+| `displayimage` | file | optional; single image upload |
 
 For local testing, set list / view / create / update / delete API rules to empty (public), or whatever auth model you want to validate next.
 
