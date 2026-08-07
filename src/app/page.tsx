@@ -1,5 +1,5 @@
-import CrudPlayground from "@/components/CrudPlayground";
+import AppShell from "@/components/AppShell";
 
 export default function Home() {
-  return <CrudPlayground />;
+  return <AppShell />;
 }

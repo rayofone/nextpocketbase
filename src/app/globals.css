@@ -407,12 +407,101 @@ textarea:focus {
   }
 }
 
+.auth-shell .header {
+  gap: 1rem;
+}
+
+.auth-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #eef3f6;
+}
+
+.auth-tab {
+  appearance: none;
+  border: none;
+  border-radius: 9px;
+  padding: 0.55rem 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(20, 33, 43, 0.08);
+}
+
+.auth-tab:not(.active):hover {
+  color: var(--ink);
+}
+
+.auth-footer {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--surface) 88%, white);
+  box-shadow: var(--shadow);
+}
+
+.session-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.session-bar strong {
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+
 @media (max-width: 720px) {
-  .meta {
+  .meta,
+  .auth-meta {
     grid-template-columns: 1fr;
   }
 
-  .panel-head {
+  .auth-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-head,
+  .session-bar {
     flex-direction: column;
     align-items: flex-start;
   }

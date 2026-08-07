@@ -1,6 +1,6 @@
 # PocketBase Next.js Template
 
-A minimal Next.js + React app that talks to PocketBase on your server, with a CRUD playground page to verify create / read / update / delete.
+A minimal Next.js + React app that talks to PocketBase on your server, with email/password auth and a CRUD playground to verify create / read / update / delete.
 
 ## Prerequisites
 
@@ -19,26 +19,53 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## PocketBase collection
+## Authentication
 
-In the admin UI (`http://<host>:<port>/_/`), create a collection named `items` (or change `NEXT_PUBLIC_POCKETBASE_COLLECTION`) with:
+The app uses PocketBase’s default auth collection (`users` unless you override `NEXT_PUBLIC_POCKETBASE_AUTH_COLLECTION`):
 
-| Field   | Type | Notes                          |
-| ------- | ---- | ------------------------------ |
-| `title` | text | required                       |
-| `notes` | text | optional                       |
-| `done`  | bool | default false                  |
+| Action | PocketBase API |
+| ------ | -------------- |
+| Sign up | `collection("users").create({ email, password, passwordConfirm })` then `authWithPassword` |
+| Sign in | `authWithPassword(email, password)` |
+| Forgot password | `requestPasswordReset(email)` |
+| Reset password | `/reset-password?token=…` → `confirmPasswordReset(token, password, passwordConfirm)` |
+| Session | `pb.authStore` (persisted in the browser) + `authRefresh` on load |
+
+### PocketBase auth setup
+
+1. Open the `users` auth collection in admin (`/_/`).
+2. Ensure password auth is enabled.
+3. For self-serve sign-up, allow create for guests (or create users only in admin).
+4. Configure **Settings → Mail settings** (SMTP) so password-reset emails can send.
+5. In the `users` collection mail templates, point the password-reset link at your app, e.g.  
+   `http://localhost:3000/reset-password?token={TOKEN}`
+6. Add your Next.js origin under **Settings → Application → CORS** (e.g. `http://localhost:3000`).
+
+## PocketBase `items` collection
+
+Create a collection named `items` (or change `NEXT_PUBLIC_POCKETBASE_COLLECTION`) with:
+
+| Field          | Type | Notes                         |
+| -------------- | ---- | ----------------------------- |
+| `title`        | text | required                      |
+| `notes`        | text | optional                      |
+| `done`         | bool | default false                 |
 | `displayimage` | file | optional; single image upload |
 
-For local testing, set list / view / create / update / delete API rules to empty (public), or whatever auth model you want to validate next.
+Prefer authenticated API rules for list / view / create / update / delete:
 
-If the browser blocks requests, add `http://localhost:3000` under **Settings → Application → CORS**.
+```txt
+@request.auth.id != ""
+```
 
 ## Project layout
 
-- `src/lib/pocketbase.ts` — PocketBase SDK client + collection name
-- `src/components/CrudPlayground.tsx` — CRUD UI against the configured collection
-- `src/app/page.tsx` — home page hosting the playground
+- `src/lib/pocketbase.ts` — PocketBase SDK client + collection names
+- `src/components/AuthProvider.tsx` — auth session + sign-in/up/reset helpers
+- `src/components/AuthForms.tsx` — sign-in, sign-up, forgot password UI
+- `src/components/CrudPlayground.tsx` — CRUD UI (shown after sign-in)
+- `src/app/reset-password/page.tsx` — password reset confirmation
+- `src/app/page.tsx` — home shell that gates the playground on auth
 
 ## Scripts
 

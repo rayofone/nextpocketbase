@@ -8,3 +8,10 @@ export type ItemRecord = RecordModel & {
   /** Filename stored by PocketBase after upload to the `displayimage` field. */
   displayimage?: string;
 };
+
+/** Auth record from the PocketBase `users` (or custom auth) collection. */
+export type AuthUser = RecordModel & {
+  email: string;
+  verified?: boolean;
+  name?: string;
+};

@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ClientResponseError } from "pocketbase";
+import { useAuth } from "@/components/AuthProvider";
+import { errorMessage as baseErrorMessage } from "@/lib/errors";
 import { COLLECTION, getPocketBase } from "@/lib/pocketbase";
 import type { ItemRecord } from "@/lib/types";
 
@@ -9,23 +11,19 @@ type Status = "idle" | "loading" | "ok" | "error";
 
 function errorMessage(err: unknown): string {
   if (err instanceof ClientResponseError) {
-    if (err.status === 0) {
-      return "Could not reach PocketBase. Check the URL, that the service is running, and CORS settings.";
-    }
     if (err.status === 404) {
       return `Collection "${COLLECTION}" not found. Create it in the PocketBase admin UI.`;
     }
     if (err.status === 403) {
-      return "Permission denied. Open the collection API rules for list/view/create/update/delete while testing.";
+      return "Permission denied. Sign in, or open the collection API rules for authenticated list/view/create/update/delete.";
     }
-    return err.message || `Request failed (${err.status})`;
   }
-  if (err instanceof Error) return err.message;
-  return "Unexpected error";
+  return baseErrorMessage(err);
 }
 
 export default function CrudPlayground() {
   const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL ?? "(not set)";
+  const { user, signOut } = useAuth();
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [items, setItems] = useState<ItemRecord[]>([]);
@@ -211,6 +209,15 @@ export default function CrudPlayground() {
             </dd>
           </div>
         </dl>
+        <div className="session-bar">
+          <div>
+            <span className="session-label">Signed in as</span>
+            <strong>{user?.email}</strong>
+          </div>
+          <button type="button" className="btn btn-ghost" onClick={signOut}>
+            Sign out
+          </button>
+        </div>
       </header>
 
       {message ? (
@@ -392,8 +399,8 @@ export default function CrudPlayground() {
             single, image mime types).
           </li>
           <li>
-            For local testing, set API rules for list/view/create/update/delete
-            to empty (public) or a rule you prefer.
+            Prefer authenticated API rules for list/view/create/update/delete,
+            e.g. <code>@request.auth.id != &quot;&quot;</code>.
           </li>
           <li>
             If the browser blocks requests, add your Next.js origin (e.g.{" "}

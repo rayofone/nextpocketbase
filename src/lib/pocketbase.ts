@@ -29,3 +29,7 @@ export function getPocketBase() {
 
 export const COLLECTION =
   process.env.NEXT_PUBLIC_POCKETBASE_COLLECTION ?? "items";
+
+/** Auth collection used for email/password sign-in (PocketBase default: users). */
+export const AUTH_COLLECTION =
+  process.env.NEXT_PUBLIC_POCKETBASE_AUTH_COLLECTION ?? "users";
